@@ -1,0 +1,19 @@
+{
+    "include": [
+        "./src/*"
+    ],
+    "compilerOptions": {
+        "module": "esNext",
+        "moduleResolution": "node",
+        "lib": [
+            "ESNext",
+            "dom",
+            "dom.iterable",
+            "ESNext.AsyncIterable"
+        ],
+        "strict": true,
+        "downlevelIteration": true,
+        "esModuleInterop": true,
+        "jsx": "react"
+    }
+}
