@@ -1,17 +1,16 @@
+import isHotkey from "is-hotkey";
 import React, { Component, FC } from "react";
+import { createEditor, Editor, Transforms } from "slate";
+import { withHistory } from "slate-history";
 import {
-  Slate,
   Editable,
-  withReact,
   RenderElementProps,
   RenderLeafProps,
-  useSlate
+  Slate,
+  useSlate,
+  withReact
 } from "slate-react";
-import { createEditor, Transforms, Editor, Text } from "slate";
-import styled from "styled-components";
-import { withHistory } from "slate-history";
 import { MenuButton, Toolbar } from "./Toolbar";
-import isHotkey from "is-hotkey";
 
 const HOTKEYS = {
   "mod+b": "bold",
@@ -31,7 +30,8 @@ export class SlateEditor extends Component {
             type: "paragraph",
             children: [{ text: "A line of text in a paragraph." }]
           }
-        ]
+        ],
+    readOnly: false
   };
 
   setValue = (value: any) => {
@@ -61,6 +61,7 @@ export class SlateEditor extends Component {
           <BlockButton format="block-quote" />
           <BlockButton format="numbered-list" />
           <BlockButton format="bulleted-list" />
+          {/* <input type="checkbox" id="vehicle1" name="vehicle1" value="Bike" /> */}
         </Toolbar>
         <Editable
           renderElement={this.renderElement}
@@ -68,7 +69,7 @@ export class SlateEditor extends Component {
           autoFocus
           onKeyDown={(event) => {
             for (const hotkey in HOTKEYS) {
-              if (isHotkey(hotkey, event)) {
+              if (isHotkey(hotkey, (event as any) as KeyboardEvent)) {
                 event.preventDefault();
                 const mark = (HOTKEYS as any)[hotkey];
                 toggleMark(this.editor, mark);
@@ -86,7 +87,7 @@ const toggleBlock = (editor: Editor, format: string) => {
   const isList = LIST_TYPES.includes(format);
 
   Transforms.unwrapNodes(editor, {
-    match: (n) => LIST_TYPES.includes(n.type),
+    match: (n) => LIST_TYPES.includes(String(n.type)),
     split: true
   });
 
@@ -189,22 +190,4 @@ const Leaf = ({ attributes, children, leaf }: RenderLeafProps) => {
   }
 
   return <span {...attributes}>{children}</span>;
-};
-
-const CodeElement = (props: RenderElementProps) => {
-  return (
-    <pre {...props.attributes}>
-      <code>{props.children}</code>
-    </pre>
-  );
-};
-
-const DefaultElement = (props: RenderElementProps) => {
-  return <p {...props.attributes}>{props.children}</p>;
-};
-
-const H1 = styled.h1``;
-
-const H1Element = (props: RenderElementProps) => {
-  return <H1 {...props.attributes}>{props.children}</H1>;
 };
