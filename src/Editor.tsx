@@ -24,64 +24,32 @@ const LIST_TYPES = ["numbered-list", "bulleted-list"];
 
 export class SlateEditor extends Component {
   state = {
-    value: [
-      {
-        type: "paragraph",
-        children: [{ text: "A line of text in a paragraph." }]
-      }
-    ]
+    value: localStorage.getItem("value")
+      ? JSON.parse("value")
+      : [
+          {
+            type: "paragraph",
+            children: [{ text: "A line of text in a paragraph." }]
+          }
+        ]
+  };
+
+  setValue = (value: any) => {
+    this.setState({ value });
+    localStorage.setItem("value", value);
   };
 
   editor = withHistory(withReact(createEditor()));
 
-  renderElement = (props: RenderElementProps) => {
-    switch (props.element.type) {
-      case "code":
-        return <CodeElement {...props} />;
-      case "h1":
-        return <H1Element {...props} />;
-      default:
-        return <DefaultElement {...props} />;
-    }
-  };
-
+  renderElement = (props: RenderElementProps) => <Element {...props} />;
   renderLeaf = (props: RenderLeafProps) => <Leaf {...props} />;
-
-  handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    if (!event.ctrlKey) {
-      return;
-    }
-    switch (event.key) {
-      case "`": {
-        event.preventDefault();
-        const [match] = Editor.nodes(this.editor, {
-          match: n => n.type === "code"
-        });
-        Transforms.setNodes(
-          this.editor,
-          { type: match ? null : "code" },
-          { match: n => Editor.isBlock(this.editor, n) }
-        );
-        break;
-      }
-      case "b": {
-        event.preventDefault();
-        Transforms.setNodes(
-          this.editor,
-          { bold: true },
-          { match: n => Text.isText(n), split: true }
-        );
-        break;
-      }
-    }
-  };
 
   render() {
     return (
       <Slate
         editor={this.editor}
         value={this.state.value}
-        onChange={value => this.setState({ value })}
+        onChange={this.setValue}
       >
         <Toolbar>
           <MarkButton format="bold" />
@@ -98,7 +66,7 @@ export class SlateEditor extends Component {
           renderElement={this.renderElement}
           renderLeaf={this.renderLeaf}
           autoFocus
-          onKeyDown={event => {
+          onKeyDown={(event) => {
             for (const hotkey in HOTKEYS) {
               if (isHotkey(hotkey, event)) {
                 event.preventDefault();
@@ -118,7 +86,7 @@ const toggleBlock = (editor: Editor, format: string) => {
   const isList = LIST_TYPES.includes(format);
 
   Transforms.unwrapNodes(editor, {
-    match: n => LIST_TYPES.includes(n.type),
+    match: (n) => LIST_TYPES.includes(n.type),
     split: true
   });
 
@@ -146,7 +114,7 @@ const BlockButton: FC<{ format: string }> = ({ format }) => {
   const editor = useSlate();
   return (
     <MenuButton
-      onClick={event => {
+      onClick={(event) => {
         event.preventDefault();
         toggleBlock(editor, format);
       }}
@@ -161,7 +129,7 @@ const MarkButton: FC<{ format: string }> = ({ format }) => {
   return (
     <MenuButton
       active={isMarkActive(editor, format)}
-      onMouseDown={event => {
+      onMouseDown={(event) => {
         event.preventDefault();
         toggleMark(editor, format);
       }}
@@ -173,7 +141,7 @@ const MarkButton: FC<{ format: string }> = ({ format }) => {
 
 const isBlockActive = (editor: Editor, format: string) => {
   const [match] = Editor.nodes(editor, {
-    match: n => n.type === format
+    match: (n) => n.type === format
   });
 
   return !!match;
@@ -183,18 +151,6 @@ const isMarkActive = (editor: Editor, format: string) => {
   const marks = Editor.marks(editor);
   return marks ? marks[format] === true : false;
 };
-
-// Define a React component to render leaves with bold text.
-// const Leaf = (props: RenderLeafProps) => {
-//   return (
-//     <span
-//       {...props.attributes}
-//       style={{ fontWeight: props.leaf.bold ? "bold" : "normal" }}
-//     >
-//       {props.children}
-//     </span>
-//   );
-// };
 
 const Element = ({ attributes, children, element }: RenderElementProps) => {
   switch (element.type) {
