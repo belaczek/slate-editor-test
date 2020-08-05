@@ -23,14 +23,12 @@ const LIST_TYPES = ["numbered-list", "bulleted-list"];
 
 export class SlateEditor extends Component {
   state = {
-    value: localStorage.getItem("value")
-      ? JSON.parse("value")
-      : [
-          {
-            type: "paragraph",
-            children: [{ text: "A line of text in a paragraph." }]
-          }
-        ],
+    value: [
+      {
+        type: "paragraph",
+        children: [{ text: "A line of text in a paragraph." }]
+      }
+    ],
     readOnly: false
   };
 
@@ -46,38 +44,55 @@ export class SlateEditor extends Component {
 
   render() {
     return (
-      <Slate
-        editor={this.editor}
-        value={this.state.value}
-        onChange={this.setValue}
-      >
-        <Toolbar>
-          <MarkButton format="bold" />
-          <MarkButton format="italic" />
-          <MarkButton format="underline" />
-          <MarkButton format="code" />
-          <BlockButton format="heading-one" />
-          <BlockButton format="heading-two" />
-          <BlockButton format="block-quote" />
-          <BlockButton format="numbered-list" />
-          <BlockButton format="bulleted-list" />
-          {/* <input type="checkbox" id="vehicle1" name="vehicle1" value="Bike" /> */}
-        </Toolbar>
-        <Editable
-          renderElement={this.renderElement}
-          renderLeaf={this.renderLeaf}
-          autoFocus
-          onKeyDown={(event) => {
-            for (const hotkey in HOTKEYS) {
-              if (isHotkey(hotkey, (event as any) as KeyboardEvent)) {
-                event.preventDefault();
-                const mark = (HOTKEYS as any)[hotkey];
-                toggleMark(this.editor, mark);
-              }
-            }
-          }}
+      <>
+        <input
+          type="checkbox"
+          id="readOnly"
+          name="readOnly"
+          checked={!!this.state.readOnly}
+          onChange={(e) => this.setState({ readOnly: !this.state.readOnly })}
         />
-      </Slate>
+        <label for={"readOnly"}>readonly</label>
+        <Slate
+          editor={this.editor}
+          value={this.state.value}
+          onChange={this.setValue}
+        >
+          {!this.state.readOnly && (
+            <Toolbar>
+              <MarkButton format="bold" />
+              <MarkButton format="italic" />
+              <MarkButton format="underline" />
+              <MarkButton format="code" />
+              <BlockButton format="heading-one" />
+              <BlockButton format="heading-two" />
+              <BlockButton format="block-quote" />
+              <BlockButton format="numbered-list" />
+              <BlockButton format="bulleted-list" />
+            </Toolbar>
+          )}
+          <Editable
+            renderElement={this.renderElement}
+            renderLeaf={this.renderLeaf}
+            plugins={[]}
+            readOnly={this.state.readOnly}
+            // autoFocus
+            onKeyDown={(event) => {
+              for (const hotkey in HOTKEYS) {
+                if (isHotkey(hotkey, (event as any) as KeyboardEvent)) {
+                  event.preventDefault();
+                  const mark = (HOTKEYS as any)[hotkey];
+                  toggleMark(this.editor, mark);
+                }
+              }
+            }}
+          />
+
+          <pre style={{ textAlign: "left" }}>
+            {JSON.stringify(this.state.value, null, " ")}
+          </pre>
+        </Slate>
+      </>
     );
   }
 }
